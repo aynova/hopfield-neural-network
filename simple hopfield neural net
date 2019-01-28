@@ -1,0 +1,90 @@
+    """the hopfield neural network"""
+    import numpy as np
+    from PIL import Image
+
+    image = Image.open("C:\\python_image_hopfield")
+    test_image = Image.open("C:\\python_image_hopfield2")
+    print(image, test_image)
+    #  convert matrix to vector
+
+
+    def mat2vect(mat):
+        dim = mat.shape
+        length = dim[0] * dim[1]
+        vect = np.zeros(length)
+        c = 0
+        for i in range(dim[0]):
+            for j in range(dim[1]):
+                vect[c] = mat[i][j]
+                c += 1
+        return vect
+
+
+    # create weight matrix for a single image
+    def create_weight_matrix(vec):
+        if len(vec.shape) != 1:
+            return "the imput is not a vector"
+        else:
+            weight_matrix = np.zeros([len(vec), len(vec)])
+            for i in range(len(vec)):
+                for j in range(i, len(vec)):
+                    if i == j:
+                        weight_matrix[i, j] = 0
+                    else:
+                        weight_matrix[i, j] = vec[i] * vec[j]
+                        weight_matrix[j, i] = weight_matrix[i, j]
+        return weight_matrix
+
+
+    # updating the connections in the weight matrix
+
+
+    def update(weight, test_vec, theta=0.5):
+        from itertools import count
+        m = len(test_vec)
+        for i in range(m):
+            u = np.dot(weight[i][:], test_vec) - theta
+            if u > 0:
+                test_vec[i] = 1
+            else:
+                test_vec[i] = -1
+        return test_vec
+
+
+    def hop_field(x, y, theta=0.5):
+        print("creating weight matrix....")
+        # num_files is the number of files
+        num_data = 0
+        for path in x:
+            print(path)
+            x_vec = mat2vect(x)
+            print(x_vec)
+            if num_data == 0:
+                w = create_weight_matrix(x_vec)
+                num_data = 1
+            else:
+                tmp_w = create_weight_matrix(x_vec)
+                w = w + tmp_w
+                num_data += 1
+        # Import test data
+        count = 0
+        for path in y:
+            print(path)
+            a, b = np.array(path.shape)[0], np.array(path.shape)[0]
+            print("Imported test data")
+            y_vect = mat2vect(y)
+
+            print("Updating...")
+            y_vec_after = update(w, y_vect, theta=theta)
+            y_vec_after = y_vec_after.reshape(a, b)
+            count += 1
+        return y_vec_after
+
+
+    a = np.zeros((2, 5))
+    print(a[1, 3])
+    pic_matrix = np.array([[1, 1, -1, -1], [1, 1, 1, -1], [1, 1, 1, -1], [-1, 1, 1, 1]])
+    test_matrix = np.array([[1, 1, -1, -1], [1, 1, 1, -1], [1, 1, -1, -1], [-1, -1, 1, -1]])
+    print(pic_matrix.shape)
+    a = hop_field(pic_matrix, test_matrix, theta=0.5)
+    print(a)
